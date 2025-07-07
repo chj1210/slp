@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>透過客製化指令增強 RISC-V 上的超字級平行化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .bg-primary { background-color: #002244; }
+        .bg-secondary { background-color: #00529B; }
+        .text-accent { color: #FDB813; }
+        .border-accent { border-color: #FDB813; }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+         @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .flow-arrow {
+            color: #00529B;
+            font-size: 2rem;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-primary text-white p-8 text-center">
+        <h1 class="text-3xl md:text-5xl font-bold mb-2">增強 RISC-V 超字級平行化</h1>
+        <p class="text-xl md:text-2xl text-accent font-semibold">客製化指令的力量_陳宏彰</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <section id="challenge" class="lg:col-span-2 card p-6">
+                <h2 class="text-2xl font-bold text-secondary mb-4">挑戰：編譯器的極限</h2>
+                <p class="text-lg mb-4">超字級平行化 (SLP) 是提升效能的關鍵技術，但傳統編譯器依賴局部、啟發式的演算法，難以識別複雜的程式碼模式。這導致了效能上的「次優解」，無法完全發揮硬體的潛力，為更先進的優化方法提供了機會。</p>
+                <div class="bg-gray-100 rounded-lg p-6 flex items-center justify-center text-center">
+                    <span class="text-5xl mr-4">⚠️</span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-red-600">次優效能瓶頸</h3>
+                        <p class="text-gray-600">傳統編譯器策略限制了平行化的效益</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="solution" class="card p-6 flex flex-col justify-center">
+                <h2 class="text-2xl font-bold text-secondary mb-4">解方：RISC-V 的開放性與擴展性</h2>
+                <p class="text-lg mb-4">RISC-V 作為一個開放、模組化的指令集架構 (ISA)，從根本上改變了遊戲規則。它允許設計者超越通用指令集，為特定應用添加客製化指令，精準打擊效能瓶頸，實現功耗、效能和面積 (PPA) 的極致優化。</p>
+                <div class="w-full text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="inline-block bg-primary text-white font-bold p-4 rounded-lg shadow-lg">RISC-V 核心</div>
+                    <div class="flex justify-around mt-4">
+                        <div class="flow-arrow">+</div>
+                        <div class="flow-arrow">+</div>
+                        <div class="flow-arrow">+</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mt-4">
+                        <div class="bg-secondary text-white p-3 rounded-lg shadow-md">客製化<br>指令 A</div>
+                        <div class="bg-secondary text-white p-3 rounded-lg shadow-md">客製化<br>指令 B</div>
+                        <div class="bg-secondary text-white p-3 rounded-lg shadow-md">客製化<br>指令 C</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="comparison" class="card p-6">
+                <h2 class="text-2xl font-bold text-secondary mb-4">通用 vs. 專用：RVV 與客製化指令</h2>
+                <p class="text-lg mb-4">RISC-V 向量擴展 (RVV) 提供了強大的通用向量處理能力，而客製化指令則為特定領域的極致效能提供了「秘密武器」。兩者相輔相成，共同構建了 RISC-V 高效能的生態系。</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border-2 border-gray-200 rounded-lg p-4">
+                        <h3 class="text-xl font-bold mb-2">RVV (通用)</h3>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li>✅ 向量長度無關性</li>
+                            <li>✅ 軟體高度可攜</li>
+                            <li>✅ 生態系標準化</li>
+                            <li>⚠️ 對特定模式非最優</li>
+                        </ul>
+                    </div>
+                    <div class="border-2 border-accent rounded-lg p-4">
+                        <h3 class="text-xl font-bold mb-2">客製化指令 (專用)</h3>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li>✅ 極致的領域效能</li>
+                            <li>✅ 顯著降低功耗</li>
+                            <li>✅ 融合複雜操作</li>
+                            <li>⚠️ 需整合工具鏈</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="impact" class="lg:col-span-2 card p-6">
+                <h2 class="text-2xl font-bold text-secondary mb-4 text-center">衝擊：驚人的真實世界效能提升</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">理論必須經過實踐檢驗。研究顯示，在機器學習、密碼學等關鍵領域，客製化指令能帶來數量級的效能提升，而硬體成本的增加卻微乎其微。</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-center mb-2">機器學習 Softmax 運算</h3>
+                        <p class="text-center text-gray-600 mb-4">針對指數運算的客製化指令，極大地降低了延遲和功耗。</p>
+                        <div class="chart-container">
+                            <canvas id="softmaxChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-center mb-2">SHA512 密碼學雜湊運算</h3>
+                         <p class="text-center text-gray-600 mb-4">以極小的面積代價，實現了超過兩倍的效能增長。</p>
+                        <div class="chart-container">
+                            <canvas id="shaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="workflow" class="lg:col-span-2 card p-6">
+                <h2 class="text-2xl font-bold text-secondary mb-4 text-center">實作流程：從概念到晶片</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">實現客製化指令需要軟硬體的緊密協同設計。從分析演算法熱點開始，到硬體 RTL 設計，再到整合編譯器、模擬器等軟體工具鏈，每一步都充滿挑戰，但自動化工具正使這一過程變得更加高效。</p>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center text-4xl shadow-inner">🔬</div>
+                        <h3 class="font-bold mt-2">1. 演算法分析</h3>
+                        <p class="text-sm text-gray-600">識別效能瓶頸</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rightarrow;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center text-4xl shadow-inner">⚙️</div>
+                        <h3 class="font-bold mt-2">2. 硬體 (RTL) 設計</h3>
+                        <p class="text-sm text-gray-600">實現指令邏輯</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rightarrow;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center text-4xl shadow-inner">🔗</div>
+                        <h3 class="font-bold mt-2">3. 工具鏈整合</h3>
+                        <p class="text-sm text-gray-600">支援編譯器/模擬器</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rightarrow;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center text-4xl shadow-inner">✅</div>
+                        <h3 class="font-bold mt-2">4. 驗證與部署</h3>
+                        <p class="text-sm text-gray-600">確保功能與效能</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="future" class="lg:col-span-2 card p-6">
+                <h2 class="text-2xl font-bold text-secondary mb-4">未來展望</h2>
+                <p class="text-lg mb-4">RISC-V 客製化指令代表了後摩爾定律時代的關鍵計算策略。其發展將朝向更智能的編譯器、更自動化的協同設計工具，以及與 RVV 更深度的融合，持續推動領域專用架構的創新。</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <h3 class="font-bold">🤖 更智能的編譯器</h3>
+                        <p class="text-sm text-gray-600">AI 輔助識別向量化機會</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <h3 class="font-bold">🔄 自動化協同設計</h3>
+                        <p class="text-sm text-gray-600">從高階描述生成軟硬體</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <h3 class="font-bold">🤝 RVV + 客製化協同</h3>
+                        <p class="text-sm text-gray-600">處理通用與特殊場景</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+    
+    <footer class="text-center p-4 bg-primary text-white mt-8">
+        <p>廖世偉教授指導《透過客製化指令擴展增強 RISC-V 上的超字級平行化》</p>
+    </footer>
+
+    <script>
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            } else {
+                return label;
+            }
+        };
+
+        const chartDefaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#374151'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: tooltipTitleCallback
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#4b5563' },
+                    grid: { color: '#e5e7eb' }
+                },
+                x: {
+                    ticks: { color: '#4b5563' },
+                    grid: { display: false }
+                }
+            }
+        };
+
+        const softmaxCtx = document.getElementById('softmaxChart').getContext('2d');
+        new Chart(softmaxCtx, {
+            type: 'bar',
+            data: {
+                labels: ['延遲 (倍)', '能耗 (倍)'],
+                datasets: [{
+                    label: '優化前',
+                    data: [162.7, 74.3],
+                    backgroundColor: '#cccccc',
+                    borderColor: '#999999',
+                    borderWidth: 1
+                }, {
+                    label: '客製化指令優化後',
+                    data: [1, 1],
+                    backgroundColor: '#00A1E4',
+                    borderColor: '#00529B',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                ...chartDefaultOptions,
+                plugins: {
+                    ...chartDefaultOptions.plugins,
+                    tooltip: {
+                        ...chartDefaultOptions.plugins.tooltip,
+                        callbacks: {
+                           ...chartDefaultOptions.plugins.tooltip.callbacks,
+                           label: function(context) {
+                               let label = context.dataset.label || '';
+                               if (label) {
+                                   label += ': ';
+                               }
+                               if (context.parsed.y !== null) {
+                                   label += context.parsed.y + 'x';
+                               }
+                               return label;
+                           }
+                        }
+                    }
+                },
+                scales: {
+                    ...chartDefaultOptions.scales,
+                    y: {
+                        ...chartDefaultOptions.scales.y,
+                        type: 'logarithmic',
+                        title: {
+                            display: true,
+                            text: '倍率 (對數座標)',
+                            color: '#374151'
+                        }
+                    }
+                }
+            }
+        });
+        
+        const shaCtx = document.getElementById('shaChart').getContext('2d');
+        new Chart(shaCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['核心面積', '客製化硬體面積'],
+                datasets: [{
+                    data: [98.4, 1.6],
+                    backgroundColor: ['#00529B', '#FDB813'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                 plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#374151'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback,
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: '效能提升 > 2倍 vs. 面積增加',
+                        font: { size: 16 },
+                        color: '#002244',
+                        padding: {
+                            bottom: 20
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
